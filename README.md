@@ -1,5 +1,7 @@
 # 柚备数据备份
 
+ **默认浏览器打开端口
+    http://ip:8080**
  **默认账号密码：
 admin admin** 
 
@@ -8,7 +10,7 @@ admin admin**
 
 #### 软件架构
 
-基于beego框架和xorm做的数据库定时备份系统
+基于beego（现在是gin）框架和xorm做的数据库定时备份系统
 
 前端使用 vue webpack
 
@@ -16,12 +18,28 @@ admin admin**
 
 计划任务使用beego的toolbox计划任务
 
+2022-08-08：
+后台做了较大调整
+1. 取消conf/app.conf
+2. 框架由之前的beego改成了gin 支持静态文件打包成一个exe 详情看static/static.go文件
+3. 本地sqlite改了默认路径,在以下路径查找
+```
+if sysos == "windows" {
+    DBdir = os.Getenv("APPDATA") + "/youbei"
+} else {
+    DBdir = "/usr/local/youbei"
+}
+
+```
+
 2021-02-19：
 UI界面做了较大调整，仓库重新开了一个
 beego框架升级为2.0.1
 golang升级为1.16
 优化大量变量名称和代码结构
 修复部分BUG
+
+
 
 #### 源码安装教程
 
@@ -99,3 +117,5 @@ bee run (没有安装bee直接执行go run main.go)
 ![异地存储配置](https://images.gitee.com/uploads/images/2021/0813/160954_fa9bb7ee_643689.png "4.png")
 
 
+如果有有意思的功能需求，可以联系我
+![输入图片说明](https://images.gitee.com/uploads/images/2021/0813/162123_ba4df4a6_643689.jpeg "wx.jpg")
