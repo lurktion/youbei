@@ -10,6 +10,7 @@ import (
 // Rlog ...
 type Rlog struct {
 	ID            string        `json:"id" xorm:"pk notnull unique 'id'"`
+	Name          string        `json:"name" xorm:"'name'"`
 	Lid           string        `json:"lid" xorm:"'lid'"`
 	Rid           string        `json:"rid" xorm:"'rid'"`
 	Tid           string        `json:"tid" xorm:"'tid'"`
@@ -32,6 +33,11 @@ func AddNewRemoteSendLog(lid, tid, rid string) (*Rlog, error) {
 	rlog.Rid = rid
 	rlog.Created = time.Now().Unix()
 	rlog.Status = 1
+	if name, err := CreateId("LOG", "R"); err != nil {
+		return rlog, err
+	} else {
+		rlog.Name = name
+	}
 	if _, err := localdb.Insert(rlog); err != nil {
 		return nil, err
 	}

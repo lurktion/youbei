@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"strconv"
 
@@ -85,17 +86,33 @@ func UploadFile(c *gin.Context) {
 		APIReturn(c, 500, "Yserver未启动", errors.New("Yserver未启动"))
 		return
 	}
-	if c.Query("username") != ys.Username || c.Query("password") != ys.Password {
+	fmt.Println(c.Request.PostFormValue("username"))
+	fmt.Println(c.Param("username"), c.Param("password"))
+	fmt.Println(c.Query("username"), c.Query("password"))
+	fmt.Println(ys.Username, ys.Password)
+
+	if c.Request.PostFormValue("username") != ys.Username || c.Request.PostFormValue("password") != ys.Password {
 		APIReturn(c, 500, "账号密码错误", errors.New("账号密码错误"))
 		return
 	}
 	var ob uploadfile
 
 	ob.ID = c.Param("id")
-	ob.FileName = c.Query("filename")
-	ob.Size = c.GetInt64("size")
-	ob.SaveDir = c.Query("savedir")
-	ob.PacketNum = c.GetInt64("packetnum")
+	ob.FileName = c.Request.PostFormValue("filename")
+	if size, err := strconv.ParseInt(c.Request.PostFormValue("size"), 10, 64); err != nil {
+		APIReturn(c, 500, "获取文件大小失败", err.Error())
+		return
+	} else {
+		ob.Size = size
+	}
+	ob.SaveDir = c.Request.PostFormValue("savedir")
+
+	if size, err := strconv.ParseInt(c.Request.PostFormValue("packetnum"), 10, 64); err != nil {
+		APIReturn(c, 500, "获取文件切片数失败", err.Error())
+		return
+	} else {
+		ob.PacketNum = size
+	}
 	dirpath, err := GetFilSaveDir()
 	if err != nil {
 		APIReturn(c, 500, "文件保存目录获取失败", err.Error())
@@ -121,7 +138,7 @@ func UploadFile(c *gin.Context) {
 	}
 
 	APIReturn(c, 200, "录入成功", nil)
-
+	return
 }
 
 //Uploadpacket 接收上传分片包

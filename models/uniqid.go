@@ -10,10 +10,10 @@ type MyUniqId struct {
 	Name  string `json:"name" xorm:"'name'"`
 }
 
-func CreateSqlTaskId(name string) (string, error) {
+func CreateId(types, name string) (string, error) {
 	str := ""
 	id := MyUniqId{}
-	id.Types = "TASK"
+	id.Types = types
 	id.Name = name
 
 	session := localdb.NewSession()

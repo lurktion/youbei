@@ -4,6 +4,8 @@ import (
 	"errors"
 	"time"
 
+	"youbei/utils"
+
 	"github.com/segmentio/ksuid"
 )
 
@@ -50,6 +52,7 @@ func UserChangePwd(id, oldpassword, password string) error {
 func (u *User) Add() error {
 	u.ID = ksuid.New().String()
 	u.Created = time.Now().Unix()
+	u.Passwrod = utils.Md5V(u.Passwrod)
 	_, err := localdb.Insert(u)
 	if err != nil {
 		return err

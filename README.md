@@ -10,13 +10,21 @@ admin admin**
 
 #### 软件架构
 
-基于beego（现在是gin）框架和xorm做的数据库定时备份系统
+基于beego（现在是gin）框架和xorm做的数据库定时备份系统（现已加入调用本地命令的功能）
 
 前端使用 vue webpack
 
 地址：[gitee.com/countpoison/youbei-element-admin-ui](https://gitee.com/countpoison/youbei-element-admin-ui)
 
 计划任务使用beego的toolbox计划任务
+
+2022-10-26:
+加入了调用本地命令备份的功能，需要配置；如下：
+![输入图片说明](7f65870d4ad98380b20a2fe03831b10.jpg)
+
+加入了mongodb的支持
+本次更新变动虽然多，但是兼容老的任务，不修改老任务是完全可以的
+由于本次变动较大，新增的功能只做了基础的测试，有什么问题 欢迎反馈
 
 2022-08-08：
 后台做了较大调整

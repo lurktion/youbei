@@ -14,30 +14,21 @@ import (
 	"github.com/segmentio/ksuid"
 )
 
+var tasklist = "select * from `task`"
+
 // Tasklist ...
 func GetTasks(c *gin.Context) {
-	type Query struct {
-		Types string `form:"types"`
-		Page  int    `form:"page"`
-		Count int    `form:"count"`
-	}
-
-	query := new(Query)
-	c.Bind(query)
-
-	tasks, err := md.SelectAll(query.Types, query.Page, query.Count)
-	if err != nil {
+	rep := map[string]interface{}{}
+	tasks := []md.Task{}
+	if total, err := GetRestul(c, "tasklist", &tasks); err != nil {
 		APIReturn(c, 500, "获取列表失败", err.Error())
 		return
+	} else {
+		rep["count"] = total
 	}
 
-	title, err := md.TaskCount(query.Types)
-	if err != nil {
-		APIReturn(c, 500, "获取总数失败", err.Error())
-		return
-	}
+	rep["data"] = tasks
 
-	rep := map[string]interface{}{"count": title, "data": tasks}
 	APIReturn(c, 200, "获取列表成功", &rep)
 }
 
@@ -147,7 +138,7 @@ func UpdateTask(c *gin.Context) {
 	}
 	if ob.DBType != "file" {
 		if err := db.ConnectTest(ob); err != nil {
-			APIReturn(c, 500, "更新任务失败4", err.Error())
+			APIReturn(c, 500, "数据库链接测试失败", err.Error())
 			return
 		}
 	} else if ob.DBType == "file" {

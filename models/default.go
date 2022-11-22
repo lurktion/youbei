@@ -61,6 +61,10 @@ func init() {
 	MailServerInit()
 	idfortasktable()
 	initSystemBackupCmdPath()
+	if err = localdb.RegisterSqlTemplate(xorm.Pongo2(".", ".stpl")); err != nil {
+		panic(err.Error())
+	}
+	initSqlTempReg()
 }
 
 // Localdb 返回数据库对象
@@ -75,7 +79,7 @@ func idfortasktable() {
 	}
 	for _, v := range tasks {
 		if v.Name == "" {
-			if name, err := CreateSqlTaskId(strings.ToUpper(v.DBType)); err != nil {
+			if name, err := CreateId("TASK", strings.ToUpper(v.DBType)); err != nil {
 				panic(err.Error())
 			} else {
 				v.Name = name

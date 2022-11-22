@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"errors"
-	"strconv"
 
 	md "youbei/models"
 
@@ -11,44 +10,28 @@ import (
 
 // Loglist ...
 func Loglist(c *gin.Context) {
-	tid := c.Param("id")
-	page, _ := strconv.Atoi(c.Query("page"))
-	limit, _ := strconv.Atoi(c.Query("count"))
-
+	rep := map[string]interface{}{}
 	logs := []md.Log{}
-	if tid == "" {
-		if err := md.Localdb().Desc("created").Limit(limit, limit*(page-1)).Find(&logs); err != nil {
-			APIReturn(c, 500, "获取列表失败", err.Error())
-			return
-		}
+	if total, err := GetRestul(c, "loglist", &logs); err != nil {
+		APIReturn(c, 500, "获取列表失败", err.Error())
+		return
 	} else {
-		if err := md.Localdb().Where("tid=?", tid).Desc("created").Limit(limit, limit*(page-1)).Find(&logs); err != nil {
-			APIReturn(c, 500, "获取列表失败", err.Error())
-			return
-		}
+		rep["count"] = total
 	}
-	if len(logs) > 0 {
-		for k, v := range logs {
-			ts := new(md.Task)
-			if bol, err := md.Localdb().ID(v.Tid).Get(ts); err == nil && bol {
-				logs[k].DBInfo = *ts
-			}
+
+	for k, v := range logs {
+		ts := new(md.Task)
+		if bol, err := md.Localdb().ID(v.Tid).Get(ts); err == nil && bol {
+			logs[k].DBInfo = *ts
+		}
+		rlogs := []md.Rlog{}
+		if err := md.Localdb().Where("lid=?", v.ID).Find(&rlogs); err == nil {
+			logs[k].Rlogs = rlogs
 		}
 	}
 
-	log := md.Log{}
-	title := int64(0)
-	var err error
-	if tid == "" {
-		title, err = md.Localdb().Count(&log)
-	} else {
-		title, err = md.Localdb().Where("tid=?", tid).Count(&log)
-	}
-	if err != nil {
-		APIReturn(c, 500, "获取总数失败", err.Error())
-		return
-	}
-	rep := map[string]interface{}{"count": title, "data": logs}
+	rep["data"] = logs
+
 	APIReturn(c, 200, "获取列表成功", &rep)
 }
 

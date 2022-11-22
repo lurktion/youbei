@@ -160,27 +160,42 @@ func Backup(TaskID string, nowreturn bool) error {
 		return err
 	}
 
-	localfilepath, err := ExecBackup(&t)
+	log := new(md.Log)
 
-	if err != nil {
-		if _, errlog := md.NewLog(TaskID, localfilepath, err.Error()); errlog != nil {
-			return errlog
+	if res, err := md.NewLog(TaskID); err != nil {
+		return err
+	} else {
+		log = res
+	}
+
+	if log.IfSaveLocal != 4 {
+		log.Status = 1
+		if err := log.Update("status"); err != nil {
+			return err
 		}
-		return err
 	}
-	LogID, err := md.NewLog(TaskID, localfilepath, "")
-	if err != nil {
+
+	if str, err := ExecBackup(&t); err != nil {
+		log.Status = 2
+		log.Update("status")
 		return err
+	} else {
+		log.Status = 0
+		log.Localfilepath = str
+		log.Update("status", "localfilepath")
 	}
+
 	if RS, err := md.TaskFindRemote(TaskID); err != nil {
 		return err
 	} else {
 		for _, v := range RS {
-			remoteSendLog, err := md.AddNewRemoteSendLog(LogID, TaskID, v.ID)
-			if err != nil {
+			remoteSendLog := new(md.Rlog)
+			if res, err := md.AddNewRemoteSendLog(log.ID, TaskID, v.ID); err != nil {
 				return err
+			} else {
+				remoteSendLog = res
 			}
-			err = ExecRemote(v, remoteSendLog.ID, LogID, localfilepath)
+			err = ExecRemote(v, remoteSendLog.ID, log.ID, log.Localfilepath)
 			remoteSendLog.Update(err)
 		}
 	}

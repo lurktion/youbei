@@ -39,7 +39,7 @@ type Task struct {
 
 // Add ...
 func (t *Task) Add() error {
-	if name, err := CreateSqlTaskId(strings.ToUpper(t.DBType)); err != nil {
+	if name, err := CreateId("TASK", strings.ToUpper(t.DBType)); err != nil {
 		return err
 	} else {
 		t.Name = name

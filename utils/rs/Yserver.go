@@ -7,7 +7,7 @@ import (
 
 	"github.com/segmentio/ksuid"
 
-	"github.com/beego/beego/v2/adapter/httplib"
+	"github.com/beego/beego/httplib"
 )
 
 //resAPIPacketup ...
