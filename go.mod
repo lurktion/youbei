@@ -20,7 +20,7 @@ require (
 	github.com/yeka/zip v0.0.0-20180914125537-d046722c6feb
 	go.mongodb.org/mongo-driver v1.11.0
 	golang.org/x/crypto v0.3.0
-	golang.org/x/text v0.4.0
+	golang.org/x/text v0.7.0
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 )
 
@@ -65,9 +65,9 @@ require (
 	github.com/xormplus/builder v0.0.0-20200331055651-240ff40009be // indirect
 	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
-	golang.org/x/net v0.2.0 // indirect
+	golang.org/x/net v0.7.0 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
-	golang.org/x/sys v0.2.0 // indirect
+	golang.org/x/sys v0.5.0 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/flosch/pongo2.v3 v3.0.0-20141028000813-5e81b817a0c4 // indirect
