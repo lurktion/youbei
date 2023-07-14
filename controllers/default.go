@@ -21,7 +21,7 @@ func APIReturn(c *gin.Context, Success int, Msg string, data interface{}) {
 		"msg":     Msg,
 		"result":  data,
 	}
-	c.JSON(Success, res)
+	c.AbortWithStatusJSON(Success, res)
 }
 
 func Cors() gin.HandlerFunc {

@@ -13,34 +13,44 @@ import (
 )
 
 type SystemBackupCmdPath struct {
-	ID      string `json:"id" xorm:"pk notnull unique 'id'"`
-	Name    string `json:"name" xorm:"'name'"`
-	Path    string `json:"path" xorm:"default('') 'path'"`
-	Def     int    `json:"def" xorm:"default(0) 'def'"`
-	Deleted int64  `json:"deleted" xorm:"'deleted'"`
-	DBtype  string `json:"dbtype" xorm:"'dbtype'"`
-	Created int64  `json:"created" xorm:"'created'"`
-	Status  int    `json:"status" xorm:"'status'"`
-	Commit  int    `json:"commit" xorm:"'commit'"`
+	ID       string `json:"id" xorm:"pk notnull unique 'id'"`
+	Name     string `json:"name" xorm:"'name'"`
+	Path     string `json:"path" xorm:"default('') 'path'"`
+	Def      int    `json:"def" xorm:"default(0) 'def'"`
+	Deleted  int64  `json:"deleted" xorm:"'deleted'"`
+	DBtype   string `json:"dbtype" xorm:"'dbtype'"`
+	Created  int64  `json:"created" xorm:"'created'"`
+	Status   int    `json:"status" xorm:"'status'"`
+	Recovery int    `json:"recovery" xorm:"'recovery'"`
+	Commit   int    `json:"commit" xorm:"'commit'"`
 }
 
 func initSystemBackupCmdPath() {
-	names := []string{`mysqldump`, `pg_dump`, `sqlcmd`, `mongodump`}
+	names := []string{`mysqldump`, `pg_dump`, `sqlcmd`, `mongodump`, `mysql`}
 	for _, v := range names {
 		dbtype := ""
 		commit := 0
+		recovery := 0
 		if v == "mysqldump" {
 			dbtype = "mysql"
 			commit = 0
+			recovery = 0
 		} else if v == "pg_dump" {
 			dbtype = "postgres"
 			commit = 0
+			recovery = 0
 		} else if v == "sqlcmd" {
 			dbtype = "mssql"
 			commit = 1
+			recovery = 0
 		} else if v == "mongodump" {
 			dbtype = "mongodb"
 			commit = 0
+			recovery = 0
+		} else if v == "mysql" {
+			dbtype = "mysql"
+			commit = 0
+			recovery = 1
 		}
 		cmdpath := SystemBackupCmdPath{}
 		if bol, err := localdb.Where("`name`=? and `def`=0", v).Get(&cmdpath); err != nil {
@@ -54,6 +64,7 @@ func initSystemBackupCmdPath() {
 				newcmd.Name = v
 				newcmd.DBtype = dbtype
 				newcmd.Commit = commit
+				newcmd.Recovery = recovery
 				if paths, errpath := exec.LookPath(v); errpath != nil {
 					newcmd.Path = ""
 				} else {
@@ -72,7 +83,8 @@ func initSystemBackupCmdPath() {
 				}
 				cmdpath.DBtype = dbtype
 				cmdpath.Commit = commit
-				if _, errins := localdb.ID(cmdpath.ID).Cols("path", "dbtype", "commit").Update(&cmdpath); errins != nil {
+				cmdpath.Recovery = recovery
+				if _, errins := localdb.ID(cmdpath.ID).Cols("path", "dbtype", "commit", "recovery").Update(&cmdpath); errins != nil {
 					panic(errins.Error())
 				}
 			}

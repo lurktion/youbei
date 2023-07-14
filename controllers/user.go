@@ -96,6 +96,7 @@ func Prepare() gin.HandlerFunc {
 
 		if !token.Valid {
 			APIReturn(c, 401, "验证失败2", errors.New("验证失败"))
+			return
 		}
 	}
 }

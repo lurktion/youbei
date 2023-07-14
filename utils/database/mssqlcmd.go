@@ -1,9 +1,12 @@
 package db
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 	md "youbei/models"
 )
@@ -18,11 +21,32 @@ func MSSQLCmdDump(info *md.Task, dist string) error {
 		}
 	}
 	arr := strings.Split(dist, "/")
-	cmdstr := Fmtpath(cmds.Path) + " " + fmt.Sprintf(`-S %s -U%s -P'%s' -Q "BACKUP DATABASE %s TO DISK='%s'"`, info.Host, info.User, info.Password, info.DBname, info.SavePath+"/"+arr[len(arr)-1])
-	cmsarr := strings.Split(cmdstr, " ")
 
-	cmd := exec.Command("powershell", cmsarr...)
-	fmt.Println(cmd.Args)
-	cmd.Run()
+	var cmd *exec.Cmd
+	var cmdstr string
+	var cmsarr = []string{}
+	var cmdbase string
+
+	os.Setenv("SQLCMDPASSWORD", info.Password)
+
+	sysos := runtime.GOOS
+	if sysos == "windows" {
+		cmdbase = "powershell"
+		cmdstr = Fmtpath(cmds.Path) + " " + fmt.Sprintf(`-S %s -U%s -Q "BACKUP DATABASE %s TO DISK='%s'"`, info.Host, info.User, info.DBname, info.SavePath+"/"+arr[len(arr)-1])
+		cmsarr = strings.Split(cmdstr, " ")
+		cmd = exec.Command(cmdbase, cmsarr...)
+	} else {
+		cmdstr = fmt.Sprintf(`-S %s -U%s -Q "BACKUP DATABASE %s TO DISK='%s'"`, info.Host, info.User, info.DBname, info.SavePath+"/"+arr[len(arr)-1])
+		cmsarr = strings.Split(cmdstr, " ")
+		cmd = exec.Command(Fmtpath(cmds.Path), cmsarr...)
+	}
+
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+	os.Setenv("SQLCMDPASSWORD", info.Password)
+	if err := cmd.Run(); err != nil {
+		return errors.New(err.Error() + ":" + stderr.String())
+	}
+	os.Unsetenv("SQLCMDPASSWORD")
 	return nil
 }

@@ -9,6 +9,14 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+// var TASK_DB_TYPES = map[int]string{
+// 	0: "",
+// 	1: "",
+// 	2: "",
+// 	3: "",
+// 	4: "",
+// }
+
 // Task ...
 type Task struct {
 	ID           string   `json:"id" xorm:"pk notnull unique 'id'"`

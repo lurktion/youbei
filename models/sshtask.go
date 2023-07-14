@@ -8,6 +8,7 @@ type SshTask struct {
 	ID       string `json:"id" xorm:"pk notnull unique 'id'"`
 	TaskType string `json:"tasktype" xorm:"'tasktype'"`
 	Host     string `json:"host" xorm:"'host'"`
+	Types    int    `json:"types" xorm:"default(0) 'types'"`
 	SshUser  string `json:"sshuser" xorm:"'sshuser'"`
 	SshPort  string `json:"sshport" xorm:"'sshport'"`
 	SshPwd   string `json:"sshpwd" xorm:"'sshpwd'"`

@@ -6,7 +6,11 @@
 admin admin** 
 
 #### 介绍
-柚备数据备份软件
+柚备数据备份安全平台
+本项目由于公司业务发展规划因素，现在已经作为个人项目在维护
+其实一直以来都是个别成员凭兴趣开发，目前实在找不到什么商业价值和市场，公司在业务层面已经放弃
+转由开发者独立维护，开发者联系方式：
+![联系方式](https://images.gitee.com/uploads/images/2021/0813/162123_ba4df4a6_643689.jpeg "wx.jpg")
 
 #### 软件架构
 
@@ -25,6 +29,17 @@ admin admin**
 加入了mongodb的支持
 本次更新变动虽然多，但是兼容老的任务，不修改老任务是完全可以的
 由于本次变动较大，新增的功能只做了基础的测试，有什么问题 欢迎反馈
+
+2022-11-22:
+ambiguous import 问题解决方案
+问题详情：
+https://github.com/ugorji/go/blob/master/FAQ.md#resolving-module-issues
+解决方法：
+先执行
+```
+go get -u github.com/ugorji/go/codec@latest
+```
+再进行 go mod tidy
 
 2022-08-08：
 后台做了较大调整
@@ -125,5 +140,3 @@ bee run (没有安装bee直接执行go run main.go)
 ![异地存储配置](https://images.gitee.com/uploads/images/2021/0813/160954_fa9bb7ee_643689.png "4.png")
 
 
-如果有有意思的功能需求，可以联系我
-![输入图片说明](https://images.gitee.com/uploads/images/2021/0813/162123_ba4df4a6_643689.jpeg "wx.jpg")

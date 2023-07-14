@@ -34,7 +34,9 @@ func ConnectTest(info *md.Task) error {
 		if db, err := xorm.NewEngine("mssql", "server="+info.Host+";user id="+info.User+";password="+info.Password+";port="+info.Port+";database="+info.DBname+";encrypt=disable"); err != nil {
 			return err
 		} else {
-			err = db.Ping()
+			if err = db.Ping(); err != nil {
+				fmt.Println(err.Error())
+			}
 			defer db.Close()
 			return err
 		}
@@ -55,7 +57,14 @@ func ConnectTest(info *md.Task) error {
 			return err
 		}
 	} else if info.DBType == "mongodb" {
-		clientOptions := options.Client().ApplyURI("mongodb://" + info.User + ":" + info.Password + "@" + info.Host + ":" + info.Port)
+		credential := options.Credential{
+			Username: info.User,
+			Password: info.Password,
+		}
+		if info.DefDbname != "" {
+			credential.AuthSource = info.DefDbname
+		}
+		clientOptions := options.Client().ApplyURI("mongodb://" + info.Host + ":" + info.Port).SetAuth(credential)
 		client, err := mongo.Connect(context.TODO(), clientOptions)
 		if err != nil {
 			return err

@@ -2,8 +2,10 @@ package controllers
 
 import (
 	"errors"
+	"time"
 
 	md "youbei/models"
+	db "youbei/utils/database"
 
 	"github.com/gin-gonic/gin"
 )
@@ -28,6 +30,7 @@ func Loglist(c *gin.Context) {
 		if err := md.Localdb().Where("lid=?", v.ID).Find(&rlogs); err == nil {
 			logs[k].Rlogs = rlogs
 		}
+
 	}
 
 	rep["data"] = logs
@@ -140,6 +143,13 @@ func ShowLog(c *gin.Context) {
 
 	loginfo.DBInfo = dbinfo
 
+	cmd := md.SystemBackupCmdPath{}
+	if bol, err := md.Localdb().Where("dbtype=? and status=0 and recovery=1", dbinfo.DBType).Get(&cmd); err == nil && bol {
+		loginfo.Recovery = 1
+	} else {
+		loginfo.Recovery = 0
+	}
+
 	APIReturn(c, 200, "成功", loginfo)
 }
 
@@ -165,4 +175,48 @@ func GetYserverLog(c *gin.Context) {
 
 	yfinfo.YserverPackets = ypsinfo
 	APIReturn(c, 200, "成功", yfinfo)
+}
+
+func SqlRecovery(c *gin.Context) {
+	id := c.Param("id")
+	log := new(md.Log)
+	if bol, err := md.Localdb().ID(id).Get(log); err != nil {
+		APIReturn(c, 500, "获取备份信息失败", err.Error())
+		return
+	} else {
+		if !bol {
+			APIReturn(c, 500, "备份信息不存在", errors.New("备份信息不存在"))
+			return
+		}
+	}
+
+	// 设置Status为3并更新数据库
+	log.Status = 3
+	if _, err := md.Localdb().ID(id).Cols("Status").Update(log); err != nil {
+		APIReturn(c, 500, "更新恢复状态失败", err.Error())
+		return
+	}
+
+	go func() {
+		err := db.MysqlCmdRecovery(log)
+
+		log.RecoveryTime = time.Now().Unix()
+
+		// 如果出错，设定状态为-1，否则增加RecoveryStatus值
+		if err != nil {
+			log.Status = -1 // 设定一个错误状态
+			log.RecoveryErrMsg = err.Error()
+		} else {
+			log.RecoveryStatus = log.RecoveryStatus + 1
+			log.Status = 0 // 假设1代表成功恢复的状态
+			log.RecoveryErrMsg = ""
+		}
+
+		if _, err := md.Localdb().ID(id).Cols("Status", "RecoveryStatus", "RecoveryTime", "RecoveryErrMsg").Update(log); err != nil {
+			APIReturn(c, 500, "更新恢复记录失败: ", err)
+			return
+		}
+	}()
+
+	APIReturn(c, 200, "恢复操作正在后台执行，请稍后查看结果", "恢复操作正在后台执行，请稍后查看结果")
 }

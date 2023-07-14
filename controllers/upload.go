@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"strconv"
 
@@ -86,10 +85,6 @@ func UploadFile(c *gin.Context) {
 		APIReturn(c, 500, "Yserver未启动", errors.New("Yserver未启动"))
 		return
 	}
-	fmt.Println(c.Request.PostFormValue("username"))
-	fmt.Println(c.Param("username"), c.Param("password"))
-	fmt.Println(c.Query("username"), c.Query("password"))
-	fmt.Println(ys.Username, ys.Password)
 
 	if c.Request.PostFormValue("username") != ys.Username || c.Request.PostFormValue("password") != ys.Password {
 		APIReturn(c, 500, "账号密码错误", errors.New("账号密码错误"))

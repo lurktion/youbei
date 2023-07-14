@@ -93,8 +93,7 @@ func RemoteStorageDeleteALL(rid string) error {
 
 // RemoteStorageToTaskFunc 添加远程存储和任务关联
 func RemoteStorageToTaskFunc(tid string, rids []string) error {
-	_, err := localdb.Where("tid=?", tid).Delete(new(RemoteStorageToTask))
-	if err != nil {
+	if _, err := localdb.Where("tid=?", tid).Delete(new(RemoteStorageToTask)); err != nil {
 		return err
 	}
 	for _, rid := range rids {
@@ -102,7 +101,6 @@ func RemoteStorageToTaskFunc(tid string, rids []string) error {
 		if err != nil {
 			return err
 		}
-
 		if bol {
 			return nil
 		}

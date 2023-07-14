@@ -156,7 +156,7 @@ func UpdateTask(c *gin.Context) {
 		return
 	}
 
-	if len(ob.RS) > 0 {
+	if len(ob.RS) >= 0 {
 		if err := md.RemoteStorageToTaskFunc(ob.ID, ob.RS); err != nil {
 			APIReturn(c, 500, "更新任务失败6", err.Error())
 			return

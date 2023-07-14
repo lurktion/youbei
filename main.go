@@ -17,41 +17,61 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func main() {
-	ts, err := md.All()
-	if err != nil {
-		panic(err)
-	}
+var devon = false
 
-	if len(ts) > 0 {
-		for _, ob := range ts {
-			if ob.DBType != "file" {
-				err = db.ConnectTest(&ob)
-			} else {
-				bol, errs := utils.PathExists(ob.DBpath)
-				err = errs
-				if !bol {
-					err = errors.New(ob.DBpath + " not found")
+func main() {
+
+	go func() {
+		log := md.Log{}
+		log.Status = 2
+		log.Msg = "程序异常退出，备份失败"
+		if _, err := md.Localdb().Where("status=1").Cols("status", "msg").Update(&log); err != nil {
+			panic(err)
+		}
+		log.Status = -1
+		log.RecoveryErrMsg = "程序异常退出，数据还原失败"
+		if _, err := md.Localdb().Where("status=3").Cols("status", "recoveryErrMsg").Update(&log); err != nil {
+			panic(err)
+		}
+
+		ts, err := md.All()
+		if err != nil {
+			panic(err)
+		}
+		if len(ts) > 0 {
+			for _, ob := range ts {
+				if ob.DBType != "file" {
+					err = db.ConnectTest(&ob)
+				} else {
+					bol, errs := utils.PathExists(ob.DBpath)
+					err = errs
+					if !bol {
+						err = errors.New(ob.DBpath + " not found")
+					}
+				}
+				if err == nil && ob.Crontab != "" {
+					toolbox.AddTask(ob.ID, toolbox.NewTask(ob.ID, ob.Crontab, jobs.Jobs(ob.ID)))
 				}
 			}
-			if err == nil && ob.Crontab != "" {
-				toolbox.AddTask(ob.ID, toolbox.NewTask(ob.ID, ob.Crontab, jobs.Jobs(ob.ID)))
-			}
 		}
-	}
-	sshtasks := []md.SshTask{}
-	if err := md.Localdb().Find(&sshtasks); err != nil {
-		panic(err.Error())
-	}
-	for _, sshtask := range sshtasks {
-		toolbox.AddTask(sshtask.ID, toolbox.NewTask(sshtask.ID, sshtask.Crontab, jobs.SshJobs(sshtask.ID)))
-	}
-	toolbox.StartTask()
+		sshtasks := []md.SshTask{}
+		if err := md.Localdb().Find(&sshtasks); err != nil {
+			panic(err.Error())
+		}
+		for _, sshtask := range sshtasks {
+			toolbox.AddTask(sshtask.ID, toolbox.NewTask(sshtask.ID, sshtask.Crontab, jobs.SshJobs(sshtask.ID)))
+		}
+		toolbox.StartTask()
+	}()
 
 	r := gin.Default()
 	r.Use(controllers.Cors())
-	r.StaticFS("/ui", http.FS(static.Static))
-	r.StaticFS("/static", http.FS(static.Static))
+
+	devon = false
+	if !devon {
+		r.StaticFS("/ui", http.FS(static.Static))
+		r.StaticFS("/static", http.FS(static.Static))
+	}
 
 	r.GET("/", func(c *gin.Context) {
 		c.Redirect(http.StatusMovedPermanently, "/ui")
@@ -129,6 +149,7 @@ func main() {
 		api.GET("/sysinfo", controllers.Sysinfo)
 		api.GET("/dashboardinfo", controllers.DashBoardInfo)
 		api.GET("/getlocal", controllers.GetLocal)
+		api.PUT("/sqlrecovery/:id", controllers.SqlRecovery)
 
 	}
 

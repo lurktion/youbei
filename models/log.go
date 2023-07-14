@@ -2,7 +2,6 @@ package md
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/segmentio/ksuid"
@@ -10,21 +9,27 @@ import (
 
 // Log 日志结构体
 type Log struct {
-	ID            string          `json:"id" xorm:"pk notnull unique 'id'"`
-	Name          string          `json:"name" xorm:"'name'"`
-	Tid           string          `json:"tid" xorm:"notnull 'tid'"`
-	Dbtype        string          `json:"dbtype" xorm:"-"`
-	Status        int             `json:"status" xorm:"notnull 'status'"`
-	Localfilepath string          `json:"localfilepath" xorm:"'localfilepath'"`
-	Msg           string          `json:"msg" xorm:"msg"`
-	Created       int64           `json:"created" xorm:"'created'"`
-	Deleted       int64           `json:"deleted" xorm:"'deleted'"`
-	DBInfo        Task            `json:"dbinfo" xorm:"-"`
-	RS            []RemoteStorage `json:"rs" xorm:"-"`
-	Errors        error           `json:"errors" xorm:"-"`
-
-	IfSaveLocal int    `json:"ifsavelocal" xorm:"default(0) 'ifsavelocal'"` // 0 保存 1 不保存
-	Rlogs       []Rlog `json:"rlogs" xorm:"-"`
+	ID               string          `json:"id" xorm:"pk notnull unique 'id'"`
+	Name             string          `json:"name" xorm:"'name'"`
+	Tid              string          `json:"tid" xorm:"notnull 'tid'"`
+	Dbtype           string          `json:"dbtype" xorm:"-"`
+	Status           int             `json:"status" xorm:"notnull 'status'"`
+	Localfilepath    string          `json:"localfilepath" xorm:"'localfilepath'"`
+	Msg              string          `json:"msg" xorm:"msg"`
+	Created          int64           `json:"created" xorm:"'created'"`
+	Deleted          int64           `json:"deleted" xorm:"'deleted'"`
+	DBInfo           Task            `json:"dbinfo" xorm:"-"`
+	RS               []RemoteStorage `json:"rs" xorm:"-"`
+	Errors           error           `json:"errors" xorm:"-"`
+	PasswordStatus   int             `json:"passwordStatus" xorm:"default(0) 'passwordStatus'"`
+	Password         string          `json:"password" xorm:"'password'"`
+	Recovery         int             `json:"recovery" xorm:"-"`
+	RecoveryStatus   int             `json:"recoveryStatus" xorm:"default(0) 'recoveryStatus'"`
+	RecoveryProgress int64           `json:"recoveryProgress" xorm:"default(0) 'recoveryProgress'"`
+	RecoveryTime     int64           `json:"recoveryTime" xorm:"default(0) 'recoveryTime'"`
+	RecoveryErrMsg   string          `json:"recoveryErrMsg" xorm:"'RecoveryErrMsg'"`
+	IfSaveLocal      int             `json:"ifsavelocal" xorm:"default(0) 'ifsavelocal'"` // 0 保存 1 不保存
+	Rlogs            []Rlog          `json:"rlogs" xorm:"-"`
 }
 
 // NewLog ...
@@ -51,11 +56,11 @@ func NewLog(tid string) (*Log, error) {
 	if task.Types == 1 && task.DBType == "mysql" && task.Cmds != "" {
 		log.IfSaveLocal = 4
 	}
-
+	log.PasswordStatus = task.Enablezippwd
+	log.Password = task.Zippwd
 	if _, err := localdb.Insert(log); err != nil {
 		return log, err
 	}
-	fmt.Println(log.ID)
 	return log, nil
 }
 

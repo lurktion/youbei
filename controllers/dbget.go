@@ -57,7 +57,7 @@ func DBGet(c *gin.Context) {
 			return
 		} else {
 			if err := db.Ping(); err != nil {
-				APIReturn(c, 500, "测试连接失败", err)
+				APIReturn(c, 500, "测试连接失败:"+err.Error(), err)
 				return
 			}
 			sql := "SELECT Name FROM Master..SySdatabases ORDER BY Name;"
@@ -85,20 +85,27 @@ func DBGet(c *gin.Context) {
 			db.Close()
 		}
 	} else if DBtype == "mongodb" {
-		clientOptions := options.Client().ApplyURI("mongodb://" + User + ":" + Password + "@" + Host + ":" + Port)
+		credential := options.Credential{
+			Username: User,
+			Password: Password,
+		}
+		if Defdbname != "" {
+			credential.AuthSource = Defdbname
+		}
+		clientOptions := options.Client().ApplyURI("mongodb://" + Host + ":" + Port).SetAuth(credential)
 		client, err := mongo.Connect(context.TODO(), clientOptions)
 		if err != nil {
-			APIReturn(c, 500, "数据库失败4", err)
+			APIReturn(c, 500, "数据库失败4:"+err.Error(), err)
 			return
 		}
 		err = client.Ping(context.TODO(), nil)
 		if err != nil {
-			APIReturn(c, 500, "测试连接失败", err)
+			APIReturn(c, 500, "测试连接失败:"+err.Error(), err)
 			return
 		}
 		dbs, err = client.ListDatabaseNames(context.TODO(), bson.M{})
 		if err != nil {
-			APIReturn(c, 500, "查询数据库失败", err)
+			APIReturn(c, 500, "查询数据库失败:"+err.Error(), err)
 			return
 		}
 

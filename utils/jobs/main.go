@@ -25,6 +25,11 @@ import (
 func ExecBackup(info *md.Task) (string, error) {
 	dist, distzip := dbtools.FmtFilename(info)
 
+	zippwd := ""
+	if info.Enablezippwd == 1 {
+		zippwd = info.Zippwd
+	}
+
 	if info.Cmds == "" {
 		var db *xorm.Engine
 		var err error
@@ -40,7 +45,7 @@ func ExecBackup(info *md.Task) (string, error) {
 			sqlstr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", info.Host, info.Port, info.User, info.Password, info.DBname)
 			db, err = xorm.NewEngine("postgres", sqlstr)
 		} else if info.DBType == "file" {
-			return filedump.FileDump(info.DBpath, info.SavePath, info.Zippwd)
+			return filedump.FileDump(info.DBpath, info.SavePath, zippwd)
 		} else {
 			return "", errors.New("dbtype not found")
 		}
@@ -81,7 +86,8 @@ func ExecBackup(info *md.Task) (string, error) {
 		}
 
 	}
-	return dbtools.SQLDumpZip(dist, distzip, info.Zippwd)
+
+	return dbtools.SQLDumpZip(dist, distzip, zippwd)
 }
 
 //ExecRemote ...
@@ -98,13 +104,11 @@ func ExecRemote(v md.RemoteStorage, rlid string, lid string, Localfilepath strin
 	} else if v.Types == "Yserver" {
 		filepackets, err := yuancheng.ReadBigFile()
 		if err != nil {
-			fmt.Println(err.Error())
 			return err
 		}
 		ysuploadfile := new(md.YsUploadFile)
 		ysuploadfile.ID = ksuid.New().String()
 		ysuploadfile.Lid = rlid
-		fmt.Println(filepackets.SrcFilePath)
 		ysuploadfile.SrcFilePath = filepackets.SrcFilePath
 		ysuploadfile.UploadFileServerID = filepackets.UploadFileServerID
 		ysuploadfile.Size = filepackets.Size
@@ -177,7 +181,8 @@ func Backup(TaskID string, nowreturn bool) error {
 
 	if str, err := ExecBackup(&t); err != nil {
 		log.Status = 2
-		log.Update("status")
+		log.Msg = err.Error()
+		log.Update("status", "msg")
 		return err
 	} else {
 		log.Status = 0
